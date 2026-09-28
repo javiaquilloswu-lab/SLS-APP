@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/layoutLanding"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/landing_maroon_bg"
+    android:padding="24dp">
+
+    <!-- Top Institution Pill Badge -->
+    <LinearLayout
+        android:id="@+id/badgeInstitution"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:background="@drawable/bg_pill_active"
+        android:backgroundTint="#26FFFFFF"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:src="@drawable/ic_scholarship"
+            app:tint="@color/white" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:letterSpacing="0.04"
+            android:text="@string/university_full_name"
+            android:textColor="@color/white"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:text="ⓘ"
+            android:textColor="#B3FFFFFF"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <!-- Center Icon & Branding -->
+    <FrameLayout
+        android:id="@+id/logoContainer"
+        android:layout_width="84dp"
+        android:layout_height="84dp"
+        android:layout_marginBottom="24dp"
+        android:background="@drawable/bg_pill_active"
+        android:backgroundTint="#33000000"
+        app:layout_constraintBottom_toTopOf="@id/tvAppTitle"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/badgeInstitution"
+        app:layout_constraintVertical_bias="0.55">
+
+        <ImageView
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_scholarship"
+            app:tint="@color/white" />
+
+        <!-- Verified badge indicator -->
+        <ImageView
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:layout_gravity="bottom|end"
+            android:layout_margin="2dp"
+            android:background="@drawable/bg_pill_active"
+            android:backgroundTint="@color/secondary_ruby"
+            android:padding="3dp"
+            android:src="@drawable/ic_shield_check"
+            app:tint="@color/white" />
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/tvAppTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Student Life ."
+        android:textColor="@color/white"
+        android:textSize="32sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toTopOf="@id/tvAppTagline"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/tvAppTagline"
+        android:layout_width="260dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:gravity="center"
+        android:lineSpacingExtra="4dp"
+        android:text="@string/welcome_tagline"
+        android:textColor="#D1D5DB"
+        android:textSize="15sp"
+        app:layout_constraintBottom_toTopOf="@id/btnSignIn"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/logoContainer"
+        app:layout_constraintVertical_bias="0.3" />
+
+    <!-- Action Buttons -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnSignIn"
+        style="@style/Button.WhitePill"
+        android:layout_width="match_parent"
+        android:layout_height="54dp"
+        android:layout_marginBottom="12dp"
+        android:text="Sign In"
+        android:textColor="@color/primary_maroon"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toTopOf="@id/btnSignUp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnSignUp"
+        style="@style/Button.TranslucentMaroon"
+        android:layout_width="match_parent"
+        android:layout_height="54dp"
+        android:layout_marginBottom="40dp"
+        android:text="Sign Up"
+        android:textColor="@color/white"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toTopOf="@id/tvCopyright" />
+
+    <!-- Copyright Footer -->
+    <TextView
+        android:id="@+id/tvCopyright"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:letterSpacing="0.05"
+        android:text="@string/copyright_text"
+        android:textColor="#80FFFFFF"
+        android:textSize="11sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

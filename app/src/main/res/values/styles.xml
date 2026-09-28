@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Base Application Theme -->
+    <style name="Theme.StudentLife" parent="Theme.Material3.Light.NoActionBar">
+        <!-- Brand Colors -->
+        <item name="colorPrimary">@color/primary_maroon</item>
+        <item name="colorPrimaryDark">@color/primary_maroon_dark</item>
+        <item name="colorSecondary">@color/secondary_ruby</item>
+        <item name="android:windowBackground">@color/app_background</item>
+        <item name="android:statusBarColor">@color/app_background</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:navigationBarColor">@color/app_background</item>
+        <item name="android:windowLightNavigationBar">true</item>
+    </style>
+
+    <!-- Landing Theme (Dark Maroon Status Bar) -->
+    <style name="Theme.StudentLife.Landing" parent="Theme.StudentLife">
+        <item name="android:windowBackground">@color/landing_maroon_bg</item>
+        <item name="android:statusBarColor">@color/landing_maroon_bg</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+
+    <!-- Base Parent Styles for Dot-Notation Inheritance -->
+    <style name="Card" />
+    <style name="Button" />
+    <style name="Text" />
+    <style name="Text.Headline" parent="Text" />
+    <style name="Text.Body" parent="Text" />
+
+    <!-- Custom View Styles -->
+    <style name="Card.Primary" parent="Widget.Material3.CardView.Elevated">
+        <item name="cardCornerRadius">@dimen/radius_primary_card</item>
+        <item name="cardElevation">2dp</item>
+        <item name="cardBackgroundColor">@color/card_surface</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="strokeColor">@color/divider_border</item>
+    </style>
+
+    <style name="Button.PrimaryMaroon" parent="Widget.Material3.Button">
+        <item name="android:backgroundTint">@color/primary_maroon</item>
+        <item name="android:textColor">@color/text_white</item>
+        <item name="cornerRadius">@dimen/radius_pill</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:minHeight">@dimen/btn_height_primary</item>
+    </style>
+
+    <style name="Button.WhitePill" parent="Widget.Material3.Button">
+        <item name="android:backgroundTint">@color/white</item>
+        <item name="android:textColor">@color/primary_maroon</item>
+        <item name="cornerRadius">@dimen/radius_pill</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:minHeight">@dimen/btn_height_primary</item>
+    </style>
+
+    <style name="Button.TranslucentMaroon" parent="Widget.Material3.Button">
+        <item name="android:backgroundTint">@color/landing_btn_signup_bg</item>
+        <item name="android:textColor">@color/text_white</item>
+        <item name="cornerRadius">@dimen/radius_pill</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:minHeight">@dimen/btn_height_primary</item>
+    </style>
+
+    <!-- Typography Styles -->
+    <style name="Text.Headline.XL">
+        <item name="android:textSize">@dimen/text_size_headline_xl</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:fontFamily">sans-serif</item>
+    </style>
+
+    <style name="Text.Headline.LG">
+        <item name="android:textSize">@dimen/text_size_headline_lg</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:fontFamily">sans-serif</item>
+    </style>
+
+    <style name="Text.Headline.MD">
+        <item name="android:textSize">@dimen/text_size_headline_md</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:fontFamily">sans-serif</item>
+    </style>
+
+    <style name="Text.Body.LG">
+        <item name="android:textSize">@dimen/text_size_body_lg</item>
+        <item name="android:textColor">@color/text_primary</item>
+    </style>
+
+    <style name="Text.Body.MD">
+        <item name="android:textSize">@dimen/text_size_body_md</item>
+        <item name="android:textColor">@color/text_secondary</item>
+    </style>
+
+    <style name="Text.Body.SM">
+        <item name="android:textSize">@dimen/text_size_body_sm</item>
+        <item name="android:textColor">@color/text_secondary</item>
+    </style>
+
+    <style name="Text.Caption">
+        <item name="android:textSize">@dimen/text_size_caption</item>
+        <item name="android:textColor">@color/text_muted</item>
+    </style>
+</resources>

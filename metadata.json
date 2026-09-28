@@ -1,0 +1,8 @@
+{
+  "name": "Remix Student Life - SWU PHINMA",
+  "description": "Southwestern University PHINMA student life mobile application built with native Android Java and XML layouts.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

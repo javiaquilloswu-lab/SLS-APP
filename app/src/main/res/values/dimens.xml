@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Card & Component Radii -->
+    <dimen name="radius_primary_card">16dp</dimen>
+    <dimen name="radius_secondary_card">12dp</dimen>
+    <dimen name="radius_pill">999dp</dimen>
+    <dimen name="radius_input">12dp</dimen>
+    <dimen name="radius_floating_nav">32dp</dimen>
+
+    <!-- Spacing -->
+    <dimen name="spacing_2xs">2dp</dimen>
+    <dimen name="spacing_xs">4dp</dimen>
+    <dimen name="spacing_sm">8dp</dimen>
+    <dimen name="spacing_md">12dp</dimen>
+    <dimen name="spacing_lg">16dp</dimen>
+    <dimen name="spacing_xl">20dp</dimen>
+    <dimen name="spacing_2xl">24dp</dimen>
+    <dimen name="spacing_3xl">32dp</dimen>
+    <dimen name="screen_margin_horizontal">16dp</dimen>
+    <dimen name="screen_margin_vertical">16dp</dimen>
+    <dimen name="floating_nav_bottom_margin">16dp</dimen>
+    <dimen name="content_bottom_padding_for_nav">100dp</dimen>
+
+    <!-- Component Heights -->
+    <dimen name="btn_height_primary">50dp</dimen>
+    <dimen name="input_height">48dp</dimen>
+    <dimen name="floating_nav_height">64dp</dimen>
+    <dimen name="quick_service_icon_size">56dp</dimen>
+
+    <!-- Typography -->
+    <dimen name="text_size_headline_xl">28sp</dimen>
+    <dimen name="text_size_headline_lg">22sp</dimen>
+    <dimen name="text_size_headline_md">18sp</dimen>
+    <dimen name="text_size_body_lg">16sp</dimen>
+    <dimen name="text_size_body_md">14sp</dimen>
+    <dimen name="text_size_body_sm">12sp</dimen>
+    <dimen name="text_size_caption">11sp</dimen>
+</resources>

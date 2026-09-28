@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Redirect to Theme.StudentLife -->
+    <style name="Theme.StudentLife.DayNight" parent="Theme.StudentLife" />
+</resources>
