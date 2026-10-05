@@ -277,6 +277,13 @@ export const AdminApi = {
     return adminFetch(`admin_students.php?${params.toString()}`, { method: 'GET' });
   },
 
+  async deleteStudent(studentId: string): Promise<{ success: boolean; message: string; data?: any }> {
+    return adminFetch('admin_students.php', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'delete_student', student_id: studentId })
+    });
+  },
+
   // Document Management
   async getDocuments(status = ''): Promise<{ success: boolean; data?: AdminDocument[]; message?: string }> {
     const query = status && status !== 'all' ? `?status=${encodeURIComponent(status)}` : '';

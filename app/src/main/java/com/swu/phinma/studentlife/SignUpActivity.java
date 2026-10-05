@@ -79,8 +79,9 @@ public class SignUpActivity extends AppCompatActivity {
             etEmail.setError("University email is required");
             return;
         }
-        if (!email.contains("@")) {
-            etEmail.setError("Must be a valid email");
+        String lowerEmail = email.toLowerCase();
+        if (!lowerEmail.endsWith("@swu.edu.ph") && !lowerEmail.endsWith("@phinmaed.com") && !lowerEmail.endsWith("@swu.phinma.edu.ph")) {
+            etEmail.setError("Must use an official university email (@swu.edu.ph or @phinmaed.com)");
             return;
         }
         if (password.length() < 8) {

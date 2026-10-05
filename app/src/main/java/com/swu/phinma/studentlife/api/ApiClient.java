@@ -29,7 +29,7 @@ public class ApiClient {
 
     // Defaults for Emulator vs Physical Device (XAMPP Apache Port 8080)
     public static final String EMULATOR_BASE_URL = "http://10.0.2.2:8080/android_api/";
-    public static final String PHYSICAL_LAN_BASE_URL = "http://192.168.1.8:8080/android_api/";
+    public static final String PHYSICAL_LAN_BASE_URL = "http://192.168.1.9:8080/android_api/";
     public static final String DEFAULT_BASE_URL = isEmulator() ? EMULATOR_BASE_URL : PHYSICAL_LAN_BASE_URL;
 
     private static final ExecutorService executor = Executors.newFixedThreadPool(4);
@@ -61,7 +61,7 @@ public class ApiClient {
         if (saved != null && !saved.trim().isEmpty()) {
             String clean = saved.trim();
             // Automatically upgrade legacy port 80 or outdated IP saved URLs to active IP
-            if (!clean.contains(":8080") || (!isEmulator() && !clean.contains("192.168.1.8"))) {
+            if (!clean.contains(":8080") || (!isEmulator() && !clean.contains("192.168.1.9"))) {
                 String target = isEmulator() ? EMULATOR_BASE_URL : PHYSICAL_LAN_BASE_URL;
                 prefs.edit().putString(KEY_BASE_URL, target).apply();
                 return target;

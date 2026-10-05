@@ -9,7 +9,8 @@ import {
   FileCheck2,
   X,
   Mail,
-  GraduationCap
+  GraduationCap,
+  Trash2
 } from 'lucide-react';
 import { AdminApi, AdminStudent } from '../../services/adminApi';
 
@@ -24,6 +25,10 @@ export const AdminStudents: React.FC<AdminStudentsProps> = ({ onShowMessage }) =
   const [courseFilter, setCourseFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedStudent, setSelectedStudent] = useState<AdminStudent | null>(null);
+
+  // Delete State
+  const [deletingStudent, setDeletingStudent] = useState<AdminStudent | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchStudents = async () => {
     setLoading(true);
@@ -47,6 +52,25 @@ export const AdminStudents: React.FC<AdminStudentsProps> = ({ onShowMessage }) =
     }, 250);
     return () => clearTimeout(timer);
   }, [search, courseFilter, statusFilter]);
+
+  const handleConfirmDelete = async () => {
+    if (!deletingStudent) return;
+    setIsDeleting(true);
+    try {
+      const res = await AdminApi.deleteStudent(deletingStudent.student_id);
+      if (res.success) {
+        onShowMessage(`Student account (${deletingStudent.student_id}) deleted successfully.`);
+        setDeletingStudent(null);
+        await fetchStudents();
+      } else {
+        onShowMessage(res.message || 'Unable to delete student account.', true);
+      }
+    } catch (err: any) {
+      onShowMessage('Error deleting student account: ' + err.message, true);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -173,12 +197,22 @@ export const AdminStudents: React.FC<AdminStudentsProps> = ({ onShowMessage }) =
                       / {student.total_docs_count || 0} docs
                     </td>
                     <td className="py-3.5 px-4 text-right">
-                      <button
-                        onClick={() => setSelectedStudent(student)}
-                        className="px-3 py-1 bg-white border border-[#D9E0E6] hover:bg-slate-100 text-xs font-semibold text-[#17324D] rounded shadow-sm transition-colors"
-                      >
-                        View Profile
-                      </button>
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => setSelectedStudent(student)}
+                          className="px-3 py-1 bg-white border border-[#D9E0E6] hover:bg-slate-100 text-xs font-semibold text-[#17324D] rounded shadow-sm transition-colors"
+                        >
+                          View Profile
+                        </button>
+                        <button
+                          onClick={() => setDeletingStudent(student)}
+                          className="px-2.5 py-1 bg-rose-50 border border-rose-200 hover:bg-rose-100 text-xs font-semibold text-rose-700 rounded shadow-sm transition-colors flex items-center gap-1"
+                          title="Delete Student Account"
+                        >
+                          <Trash2 size={13} />
+                          <span>Delete</span>
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -246,12 +280,71 @@ export const AdminStudents: React.FC<AdminStudentsProps> = ({ onShowMessage }) =
               </div>
             </div>
 
-            <div className="flex justify-end pt-4 border-t border-[#D9E0E6]">
+            <div className="flex justify-between items-center pt-4 border-t border-[#D9E0E6]">
+              <button
+                onClick={() => {
+                  const target = selectedStudent;
+                  setSelectedStudent(null);
+                  setDeletingStudent(target);
+                }}
+                className="px-3 py-1.5 bg-rose-50 border border-rose-200 hover:bg-rose-100 text-rose-700 text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5"
+              >
+                <Trash2 size={14} />
+                <span>Delete Account</span>
+              </button>
+
               <button
                 onClick={() => setSelectedStudent(null)}
                 className="px-4 py-2 bg-[#17324D] text-white text-xs font-semibold rounded-lg hover:bg-[#10283E] transition-colors"
               >
                 Close Profile
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Student Account Confirmation Modal */}
+      {deletingStudent && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl border border-rose-200 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center flex-shrink-0">
+                <Trash2 size={20} />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-[#17324D]">Delete Student Account?</h3>
+                <span className="text-xs text-rose-600 font-medium">Permanent Destructive Action</span>
+              </div>
+            </div>
+
+            <p className="text-xs text-[#5F6B76] leading-relaxed">
+              Are you sure you want to permanently delete this student account? This action cannot be undone.
+            </p>
+
+            <div className="bg-[#F5F7FA] p-3.5 rounded-lg border border-[#D9E0E6] text-xs space-y-1 font-mono">
+              <div><strong className="text-[#5F6B76]">Student ID:</strong> {deletingStudent.student_id}</div>
+              <div><strong className="text-[#5F6B76]">Name:</strong> {deletingStudent.first_name} {deletingStudent.last_name}</div>
+              <div><strong className="text-[#5F6B76]">Email:</strong> {deletingStudent.email}</div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-3 border-t border-[#D9E0E6]">
+              <button
+                type="button"
+                onClick={() => setDeletingStudent(null)}
+                disabled={isDeleting}
+                className="px-4 py-2 text-xs font-semibold text-[#5F6B76] hover:text-[#17202A] transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                disabled={isDeleting}
+                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 disabled:bg-rose-300 text-white text-xs font-bold rounded-lg shadow-sm transition-colors flex items-center gap-1.5"
+              >
+                <Trash2 size={14} />
+                <span>{isDeleting ? 'Deleting Account...' : 'Delete Account'}</span>
               </button>
             </div>
           </div>
