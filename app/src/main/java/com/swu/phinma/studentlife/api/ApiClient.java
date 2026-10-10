@@ -29,7 +29,7 @@ public class ApiClient {
 
     // Defaults for Emulator vs Physical Device (XAMPP Apache Port 8080)
     public static final String EMULATOR_BASE_URL = "http://10.0.2.2:8080/android_api/";
-    public static final String PHYSICAL_LAN_BASE_URL = "http://192.168.1.9:8080/android_api/";
+    public static final String PHYSICAL_LAN_BASE_URL = "http://192.168.1.8:8080/android_api/";
     public static final String DEFAULT_BASE_URL = isEmulator() ? EMULATOR_BASE_URL : PHYSICAL_LAN_BASE_URL;
 
     private static final ExecutorService executor = Executors.newFixedThreadPool(4);
@@ -61,7 +61,7 @@ public class ApiClient {
         if (saved != null && !saved.trim().isEmpty()) {
             String clean = saved.trim();
             // Automatically upgrade legacy port 80 or outdated IP saved URLs to active IP
-            if (!clean.contains(":8080") || (!isEmulator() && !clean.contains("192.168.1.9"))) {
+            if (!clean.contains(":8080") || (!isEmulator() && !clean.contains("192.168.1.8"))) {
                 String target = isEmulator() ? EMULATOR_BASE_URL : PHYSICAL_LAN_BASE_URL;
                 prefs.edit().putString(KEY_BASE_URL, target).apply();
                 return target;
@@ -280,6 +280,20 @@ public class ApiClient {
      * Executes a multipart/form-data HTTP POST request for uploading files to PHP backend.
      */
     public static void postMultipart(final Context context, final String endpoint, final String documentType, final android.net.Uri fileUri, final ApiCallback callback) {
+        postMultipart(context, endpoint, documentType, fileUri, null, callback);
+    }
+
+    /**
+     * Overloaded multipart POST method accepting optional request_id for Phase 2/3 relationship tracking.
+     */
+    public static void postMultipart(final Context context, final String endpoint, final String documentType, final android.net.Uri fileUri, final Integer requestId, final ApiCallback callback) {
+        postMultipart(context, endpoint, documentType, fileUri, requestId, null, callback);
+    }
+
+    /**
+     * Overloaded multipart POST method accepting optional request_id and replace_document_id for Phase 4 replacement tracking.
+     */
+    public static void postMultipart(final Context context, final String endpoint, final String documentType, final android.net.Uri fileUri, final Integer requestId, final Integer replaceDocId, final ApiCallback callback) {
         executor.execute(() -> {
             HttpURLConnection conn = null;
             String boundary = "===SWU_STUDENT_LIFE_" + System.currentTimeMillis() + "===";
@@ -316,6 +330,28 @@ public class ApiClient {
                         textPart.append(lineEnd);
                         textPart.append(documentType).append(lineEnd);
                         os.write(textPart.toString().getBytes(StandardCharsets.UTF_8));
+                    }
+
+                    // 2. Text part: request_id
+                    if (requestId != null && requestId > 0) {
+                        StringBuilder reqIdPart = new StringBuilder();
+                        reqIdPart.append(twoHyphens).append(boundary).append(lineEnd);
+                        reqIdPart.append("Content-Disposition: form-data; name=\"request_id\"").append(lineEnd);
+                        reqIdPart.append("Content-Type: text/plain; charset=UTF-8").append(lineEnd);
+                        reqIdPart.append(lineEnd);
+                        reqIdPart.append(requestId).append(lineEnd);
+                        os.write(reqIdPart.toString().getBytes(StandardCharsets.UTF_8));
+                    }
+
+                    // 3. Text part: replace_document_id (Phase 4 replacement)
+                    if (replaceDocId != null && replaceDocId > 0) {
+                        StringBuilder repPart = new StringBuilder();
+                        repPart.append(twoHyphens).append(boundary).append(lineEnd);
+                        repPart.append("Content-Disposition: form-data; name=\"replace_document_id\"").append(lineEnd);
+                        repPart.append("Content-Type: text/plain; charset=UTF-8").append(lineEnd);
+                        repPart.append(lineEnd);
+                        repPart.append(replaceDocId).append(lineEnd);
+                        os.write(repPart.toString().getBytes(StandardCharsets.UTF_8));
                     }
 
                     // 2. File part: document

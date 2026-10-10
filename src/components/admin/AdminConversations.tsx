@@ -11,7 +11,8 @@ import {
   ShieldCheck,
   UserCheck
 } from 'lucide-react';
-import { AdminApi, AdminConcern } from '../../services/adminApi';
+import { AdminApi, AdminConcern, PaginationMeta } from '../../services/adminApi';
+import { AdminPagination } from './AdminPagination';
 
 interface AdminConversationsProps {
   onSelectTicket: (ticketRef: string) => void;
@@ -27,12 +28,23 @@ export const AdminConversations: React.FC<AdminConversationsProps> = ({
   const [statusFilter, setStatusFilter] = useState('all');
   const [search, setSearch] = useState('');
 
+  // Pagination State
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+  const [pagination, setPagination] = useState<PaginationMeta | undefined>(undefined);
+
   const fetchConcerns = async () => {
     setLoading(true);
     try {
-      const res = await AdminApi.getConcerns(statusFilter);
+      const res = await AdminApi.getConcerns(statusFilter, search, page, limit);
       if (res.success && res.data) {
-        setConcerns(res.data);
+        if (Array.isArray(res.data)) {
+          setConcerns(res.data);
+          setPagination(undefined);
+        } else {
+          setConcerns(res.data.concerns || []);
+          setPagination(res.data.pagination);
+        }
       } else {
         onShowMessage(res.message || 'Unable to query AI conversations.', true);
       }
@@ -43,9 +55,17 @@ export const AdminConversations: React.FC<AdminConversationsProps> = ({
     }
   };
 
+  // Reset page to 1 when search or status filter changes
   useEffect(() => {
-    fetchConcerns();
-  }, [statusFilter]);
+    setPage(1);
+  }, [statusFilter, search]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchConcerns();
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [statusFilter, search, page, limit]);
 
   const filtered = concerns.filter((c) => {
     if (!search) return true;
@@ -138,7 +158,7 @@ export const AdminConversations: React.FC<AdminConversationsProps> = ({
                   </td>
                 </tr>
               ) : (
-                filtered.map((item) => {
+                concerns.map((item) => {
                   const isStaffHandling = item.status.toLowerCase().includes('staff') || item.is_ai_paused;
                   const isEscalated = item.status.toLowerCase().includes('escalat') || item.status.toLowerCase().includes('review');
                   const isResolved = item.status.toLowerCase().includes('resolv') || item.status.toLowerCase().includes('close');
@@ -226,6 +246,12 @@ export const AdminConversations: React.FC<AdminConversationsProps> = ({
             </tbody>
           </table>
         </div>
+        <AdminPagination
+          pagination={pagination}
+          onPageChange={setPage}
+          onLimitChange={(l) => { setLimit(l); setPage(1); }}
+          loading={loading}
+        />
       </div>
     </div>
   );

@@ -1,5 +1,6 @@
 package com.swu.phinma.studentlife;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -54,8 +55,26 @@ public class RequestHistoryActivity extends AppCompatActivity {
         allItems = new ArrayList<>();
         displayedItems = new ArrayList<>();
 
-        adapter = new RequestHistoryAdapter(displayedItems, item -> {
-            promptCancelRequest(item);
+        adapter = new RequestHistoryAdapter(displayedItems, new RequestHistoryAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(RequestHistoryItem item) {
+                if (item == null) return;
+                Intent intent = new Intent(RequestHistoryActivity.this, RequestTrackingActivity.class);
+                intent.putExtra("request_id", item.getId());
+                intent.putExtra("reference_number", item.getReferenceNumber());
+                intent.putExtra("title", item.getTitle());
+                intent.putExtra("department", item.getDepartment());
+                intent.putExtra("status", item.getStatus());
+                intent.putExtra("submitted_reqs", item.getSubmittedReqs());
+                intent.putExtra("total_reqs", item.getTotalReqs());
+                intent.putExtra("progress_percent", item.getProgressPercent());
+                startActivity(intent);
+            }
+
+            @Override
+            public void onCancelClick(RequestHistoryItem item) {
+                promptCancelRequest(item);
+            }
         });
 
         rvHistory.setLayoutManager(new LinearLayoutManager(this));
@@ -133,8 +152,11 @@ public class RequestHistoryActivity extends AppCompatActivity {
                             String refNum = item.optString("reference_number", "SL-2026-REG");
                             String date = item.optString("submission_date", "Recent");
                             String status = item.optString("status", "Processing");
+                            int submittedReqs = item.optInt("submitted_reqs", 0);
+                            int totalReqs = item.optInt("total_reqs", 4);
+                            int progressPercent = item.optInt("progress_percent", 0);
 
-                            list.add(new RequestHistoryItem(id, title, dept, refNum, date, status));
+                            list.add(new RequestHistoryItem(id, title, dept, refNum, date, status, submittedReqs, totalReqs, progressPercent));
                         }
 
                         runOnUiThread(() -> {

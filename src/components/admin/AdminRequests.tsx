@@ -9,7 +9,8 @@ import {
   X,
   Send
 } from 'lucide-react';
-import { AdminApi, AdminRequest } from '../../services/adminApi';
+import { AdminApi, AdminRequest, PaginationMeta } from '../../services/adminApi';
+import { AdminPagination } from './AdminPagination';
 
 interface AdminRequestsProps {
   onShowMessage: (msg: string, isError?: boolean) => void;
@@ -24,12 +25,23 @@ export const AdminRequests: React.FC<AdminRequestsProps> = ({ onShowMessage }) =
   const [statusMessage, setStatusMessage] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
+  // Pagination State
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+  const [pagination, setPagination] = useState<PaginationMeta | undefined>(undefined);
+
   const fetchRequests = async () => {
     setLoading(true);
     try {
-      const res = await AdminApi.getRequests(statusFilter);
+      const res = await AdminApi.getRequests(statusFilter, page, limit);
       if (res.success && res.data) {
-        setRequests(res.data);
+        if (Array.isArray(res.data)) {
+          setRequests(res.data);
+          setPagination(undefined);
+        } else {
+          setRequests(res.data.requests || []);
+          setPagination(res.data.pagination);
+        }
       } else {
         onShowMessage(res.message || 'Unable to query requests queue.', true);
       }
@@ -40,9 +52,14 @@ export const AdminRequests: React.FC<AdminRequestsProps> = ({ onShowMessage }) =
     }
   };
 
+  // Reset page to 1 when status filter changes
+  useEffect(() => {
+    setPage(1);
+  }, [statusFilter]);
+
   useEffect(() => {
     fetchRequests();
-  }, [statusFilter]);
+  }, [statusFilter, page, limit]);
 
   const handleUpdateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -192,6 +209,12 @@ export const AdminRequests: React.FC<AdminRequestsProps> = ({ onShowMessage }) =
             </tbody>
           </table>
         </div>
+        <AdminPagination
+          pagination={pagination}
+          onPageChange={setPage}
+          onLimitChange={(l) => { setLimit(l); setPage(1); }}
+          loading={loading}
+        />
       </div>
 
       {/* Update Dialog Modal */}

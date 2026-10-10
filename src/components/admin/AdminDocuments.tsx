@@ -11,7 +11,8 @@ import {
   X,
   FileText
 } from 'lucide-react';
-import { AdminApi, AdminDocument } from '../../services/adminApi';
+import { AdminApi, AdminDocument, PaginationMeta } from '../../services/adminApi';
+import { AdminPagination } from './AdminPagination';
 
 interface AdminDocumentsProps {
   onShowMessage: (msg: string, isError?: boolean) => void;
@@ -26,12 +27,23 @@ export const AdminDocuments: React.FC<AdminDocumentsProps> = ({ onShowMessage })
   const [adminNotes, setAdminNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
+  // Pagination State
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+  const [pagination, setPagination] = useState<PaginationMeta | undefined>(undefined);
+
   const fetchDocuments = async () => {
     setLoading(true);
     try {
-      const res = await AdminApi.getDocuments(statusFilter);
+      const res = await AdminApi.getDocuments(statusFilter, page, limit);
       if (res.success && res.data) {
-        setDocuments(res.data);
+        if (Array.isArray(res.data)) {
+          setDocuments(res.data);
+          setPagination(undefined);
+        } else {
+          setDocuments(res.data.docs || []);
+          setPagination(res.data.pagination);
+        }
       } else {
         onShowMessage(res.message || 'Unable to query documents queue.', true);
       }
@@ -42,9 +54,14 @@ export const AdminDocuments: React.FC<AdminDocumentsProps> = ({ onShowMessage })
     }
   };
 
+  // Reset page to 1 when status filter changes
+  useEffect(() => {
+    setPage(1);
+  }, [statusFilter]);
+
   useEffect(() => {
     fetchDocuments();
-  }, [statusFilter]);
+  }, [statusFilter, page, limit]);
 
   const handleReviewSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -201,6 +218,12 @@ export const AdminDocuments: React.FC<AdminDocumentsProps> = ({ onShowMessage })
             </tbody>
           </table>
         </div>
+        <AdminPagination
+          pagination={pagination}
+          onPageChange={setPage}
+          onLimitChange={(l) => { setLimit(l); setPage(1); }}
+          loading={loading}
+        />
       </div>
 
       {/* Review Dialog Modal */}

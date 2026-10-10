@@ -99,10 +99,12 @@ export interface AdminScholarshipProgram {
   code: string;
   title: string;
   description: string;
+  requirements?: string;
   academic_year: string;
   deadline: string;
   stipend_amount: string;
   is_active: boolean;
+  is_expired?: boolean;
   created_at: string;
 }
 
@@ -233,11 +235,25 @@ async function adminFetch(endpoint: string, options: RequestInit = {}): Promise<
     message: `Server returned HTTP ${response.status}`
   }));
 
+  if (response.status === 401 && !endpoint.includes('admin_login.php')) {
+    clearStoredAdminToken();
+    clearStoredAdminProfile();
+  }
+
   if (!response.ok && !json.message) {
     throw new Error(`HTTP error ${response.status}`);
   }
 
   return json;
+}
+
+export interface PaginationMeta {
+  current_page: number;
+  per_page: number;
+  total_records: number;
+  total_pages: number;
+  has_next: boolean;
+  has_prev: boolean;
 }
 
 export const AdminApi = {
@@ -269,11 +285,13 @@ export const AdminApi = {
   },
 
   // Students Directory
-  async getStudents(search = '', course = '', status = ''): Promise<{ success: boolean; data?: { count: number; students: AdminStudent[] }; message?: string }> {
+  async getStudents(search = '', course = '', status = '', page = 1, limit = 20): Promise<{ success: boolean; data?: { count: number; students: AdminStudent[]; pagination: PaginationMeta }; message?: string }> {
     const params = new URLSearchParams();
     if (search) params.append('search', search);
     if (course && course !== 'all') params.append('course', course);
     if (status && status !== 'all') params.append('status', status);
+    params.append('page', String(page));
+    params.append('limit', String(limit));
     return adminFetch(`admin_students.php?${params.toString()}`, { method: 'GET' });
   },
 
@@ -285,9 +303,12 @@ export const AdminApi = {
   },
 
   // Document Management
-  async getDocuments(status = ''): Promise<{ success: boolean; data?: AdminDocument[]; message?: string }> {
-    const query = status && status !== 'all' ? `?status=${encodeURIComponent(status)}` : '';
-    return adminFetch(`admin_documents.php${query}`, { method: 'GET' });
+  async getDocuments(status = '', page = 1, limit = 20): Promise<{ success: boolean; data?: { docs: AdminDocument[]; pagination: PaginationMeta } | AdminDocument[]; message?: string }> {
+    const params = new URLSearchParams();
+    if (status && status !== 'all') params.append('status', status);
+    params.append('page', String(page));
+    params.append('limit', String(limit));
+    return adminFetch(`admin_documents.php?${params.toString()}`, { method: 'GET' });
   },
 
   async reviewDocument(documentId: number, status: string, adminNotes = ''): Promise<{ success: boolean; message: string }> {
@@ -298,9 +319,12 @@ export const AdminApi = {
   },
 
   // Request Management
-  async getRequests(status = ''): Promise<{ success: boolean; data?: AdminRequest[]; message?: string }> {
-    const query = status && status !== 'all' ? `?status=${encodeURIComponent(status)}` : '';
-    return adminFetch(`admin_requests.php${query}`, { method: 'GET' });
+  async getRequests(status = '', page = 1, limit = 20): Promise<{ success: boolean; data?: { requests: AdminRequest[]; pagination: PaginationMeta } | AdminRequest[]; message?: string }> {
+    const params = new URLSearchParams();
+    if (status && status !== 'all') params.append('status', status);
+    params.append('page', String(page));
+    params.append('limit', String(limit));
+    return adminFetch(`admin_requests.php?${params.toString()}`, { method: 'GET' });
   },
 
   async updateRequest(requestId: number, status: string, statusMessage = '', assignedTo = ''): Promise<{ success: boolean; message: string }> {
@@ -311,11 +335,11 @@ export const AdminApi = {
   },
 
   // Scholarship Management
-  async getScholarships(): Promise<{ success: boolean; data?: { programs: AdminScholarshipProgram[]; applications: AdminScholarshipApplication[] }; message?: string }> {
-    return adminFetch('admin_scholarships.php', { method: 'GET' });
+  async getScholarships(page = 1, limit = 20): Promise<{ success: boolean; data?: { programs: AdminScholarshipProgram[]; applications: AdminScholarshipApplication[]; pagination?: PaginationMeta }; message?: string }> {
+    return adminFetch(`admin_scholarships.php?page=${page}&limit=${limit}`, { method: 'GET' });
   },
 
-  async createScholarshipProgram(program: { code: string; title: string; description: string; academic_year: string; deadline: string; stipend_amount: string }): Promise<{ success: boolean; message: string }> {
+  async createScholarshipProgram(program: { code: string; title: string; description: string; requirements?: any[]; academic_year: string; deadline: string; stipend_amount: string }): Promise<{ success: boolean; message: string }> {
     return adminFetch('admin_scholarships.php', {
       method: 'POST',
       body: JSON.stringify({ action: 'create_program', ...program })
@@ -330,8 +354,8 @@ export const AdminApi = {
   },
 
   // Notifications Management (with Real Persistence)
-  async getNotifications(): Promise<{ success: boolean; data?: AdminNotification[]; message?: string }> {
-    return adminFetch('admin_notifications.php', { method: 'GET' });
+  async getNotifications(page = 1, limit = 20): Promise<{ success: boolean; data?: { notifications: AdminNotification[]; pagination: PaginationMeta } | AdminNotification[]; message?: string }> {
+    return adminFetch(`admin_notifications.php?page=${page}&limit=${limit}`, { method: 'GET' });
   },
 
   async dispatchNotification(payload: { title: string; body: string; category: string; status_tag: string; target: string }): Promise<{ success: boolean; message: string; data?: any }> {
@@ -342,9 +366,13 @@ export const AdminApi = {
   },
 
   // AI Conversations & Escalated Concerns
-  async getConcerns(status = ''): Promise<{ success: boolean; data?: AdminConcern[]; message?: string }> {
-    const query = status && status !== 'all' ? `?status=${encodeURIComponent(status)}` : '';
-    return adminFetch(`admin_concerns.php${query}`, { method: 'GET' });
+  async getConcerns(status = '', search = '', page = 1, limit = 20): Promise<{ success: boolean; data?: { concerns: AdminConcern[]; pagination: PaginationMeta } | AdminConcern[]; message?: string }> {
+    const params = new URLSearchParams();
+    if (status && status !== 'all') params.append('status', status);
+    if (search) params.append('search', search);
+    params.append('page', String(page));
+    params.append('limit', String(limit));
+    return adminFetch(`admin_concerns.php?${params.toString()}`, { method: 'GET' });
   },
 
   async getConcernDetail(ticketRef: string): Promise<{ success: boolean; data?: { concern: AdminConcern; transcript: ConcernMessage[] }; message?: string }> {

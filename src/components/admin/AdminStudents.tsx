@@ -12,7 +12,8 @@ import {
   GraduationCap,
   Trash2
 } from 'lucide-react';
-import { AdminApi, AdminStudent } from '../../services/adminApi';
+import { AdminApi, AdminStudent, PaginationMeta } from '../../services/adminApi';
+import { AdminPagination } from './AdminPagination';
 
 interface AdminStudentsProps {
   onShowMessage: (msg: string, isError?: boolean) => void;
@@ -26,6 +27,11 @@ export const AdminStudents: React.FC<AdminStudentsProps> = ({ onShowMessage }) =
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedStudent, setSelectedStudent] = useState<AdminStudent | null>(null);
 
+  // Pagination State
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+  const [pagination, setPagination] = useState<PaginationMeta | undefined>(undefined);
+
   // Delete State
   const [deletingStudent, setDeletingStudent] = useState<AdminStudent | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -33,9 +39,10 @@ export const AdminStudents: React.FC<AdminStudentsProps> = ({ onShowMessage }) =
   const fetchStudents = async () => {
     setLoading(true);
     try {
-      const res = await AdminApi.getStudents(search, courseFilter, statusFilter);
+      const res = await AdminApi.getStudents(search, courseFilter, statusFilter, page, limit);
       if (res.success && res.data) {
-        setStudents(res.data.students);
+        setStudents(res.data.students || []);
+        setPagination(res.data.pagination);
       } else {
         onShowMessage(res.message || 'Unable to retrieve students directory.', true);
       }
@@ -46,12 +53,17 @@ export const AdminStudents: React.FC<AdminStudentsProps> = ({ onShowMessage }) =
     }
   };
 
+  // Reset page to 1 when filters change
+  useEffect(() => {
+    setPage(1);
+  }, [search, courseFilter, statusFilter]);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchStudents();
     }, 250);
     return () => clearTimeout(timer);
-  }, [search, courseFilter, statusFilter]);
+  }, [search, courseFilter, statusFilter, page, limit]);
 
   const handleConfirmDelete = async () => {
     if (!deletingStudent) return;
@@ -220,6 +232,12 @@ export const AdminStudents: React.FC<AdminStudentsProps> = ({ onShowMessage }) =
             </tbody>
           </table>
         </div>
+        <AdminPagination
+          pagination={pagination}
+          onPageChange={setPage}
+          onLimitChange={(l) => { setLimit(l); setPage(1); }}
+          loading={loading}
+        />
       </div>
 
       {/* Student Profile Drawer / Modal */}

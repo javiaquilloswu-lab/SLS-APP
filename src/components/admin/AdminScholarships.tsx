@@ -11,11 +11,20 @@ import {
 import {
   AdminApi,
   AdminScholarshipProgram,
-  AdminScholarshipApplication
+  AdminScholarshipApplication,
+  PaginationMeta
 } from '../../services/adminApi';
+import { AdminPagination } from './AdminPagination';
 
 interface AdminScholarshipsProps {
   onShowMessage: (msg: string, isError?: boolean) => void;
+}
+
+interface ReqItemInput {
+  name: string;
+  description: string;
+  allowed_type: string;
+  required: boolean;
 }
 
 export const AdminScholarships: React.FC<AdminScholarshipsProps> = ({ onShowMessage }) => {
@@ -24,7 +33,12 @@ export const AdminScholarships: React.FC<AdminScholarshipsProps> = ({ onShowMess
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'programs' | 'applications'>('programs');
 
-  // Program creation modal
+  // Pagination State for Applications
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+  const [pagination, setPagination] = useState<PaginationMeta | undefined>(undefined);
+
+  // Program creation modal & Requirement Builder state
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [newCode, setNewCode] = useState('');
   const [newTitle, setNewTitle] = useState('');
@@ -32,6 +46,11 @@ export const AdminScholarships: React.FC<AdminScholarshipsProps> = ({ onShowMess
   const [newAcadYear, setNewAcadYear] = useState('AY 2026–2027');
   const [newDeadline, setNewDeadline] = useState('October 31, 2026');
   const [newStipend, setNewStipend] = useState('₱30,000.00');
+  const [reqItems, setReqItems] = useState<ReqItemInput[]>([
+    { name: 'Certificate of Grades (COG)', description: 'Certified copy of grades for the preceding academic semester', allowed_type: 'PDF/JPG/PNG', required: true },
+    { name: 'Good Moral Certificate', description: 'Current university-issued conduct clearance', allowed_type: 'PDF/JPG/PNG', required: true },
+    { name: 'Proof of Income / ITR', description: 'Parents Tax Return or Indigency Certificate', allowed_type: 'PDF', required: true }
+  ]);
   const [submittingProgram, setSubmittingProgram] = useState(false);
 
   // Application evaluation modal
@@ -40,13 +59,28 @@ export const AdminScholarships: React.FC<AdminScholarshipsProps> = ({ onShowMess
   const [evalNotes, setEvalNotes] = useState('');
   const [submittingEval, setSubmittingEval] = useState(false);
 
+  const addReqItem = () => {
+    setReqItems([...reqItems, { name: '', description: '', allowed_type: 'PDF/JPG/PNG', required: true }]);
+  };
+
+  const removeReqItem = (index: number) => {
+    setReqItems(reqItems.filter((_, i) => i !== index));
+  };
+
+  const updateReqItem = (index: number, field: keyof ReqItemInput, value: any) => {
+    const updated = [...reqItems];
+    updated[index] = { ...updated[index], [field]: value };
+    setReqItems(updated);
+  };
+
   const fetchScholarships = async () => {
     setLoading(true);
     try {
-      const res = await AdminApi.getScholarships();
+      const res = await AdminApi.getScholarships(page, limit);
       if (res.success && res.data) {
-        setPrograms(res.data.programs);
-        setApplications(res.data.applications);
+        setPrograms(res.data.programs || []);
+        setApplications(res.data.applications || []);
+        setPagination(res.data.pagination);
       } else {
         onShowMessage(res.message || 'Unable to query scholarships.', true);
       }
@@ -59,7 +93,7 @@ export const AdminScholarships: React.FC<AdminScholarshipsProps> = ({ onShowMess
 
   useEffect(() => {
     fetchScholarships();
-  }, []);
+  }, [page, limit]);
 
   const handleCreateProgram = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,6 +103,7 @@ export const AdminScholarships: React.FC<AdminScholarshipsProps> = ({ onShowMess
         code: newCode,
         title: newTitle,
         description: newDesc,
+        requirements: reqItems.filter(r => r.name.trim() !== ''),
         academic_year: newAcadYear,
         deadline: newDeadline,
         stipend_amount: newStipend
@@ -187,9 +222,21 @@ export const AdminScholarships: React.FC<AdminScholarshipsProps> = ({ onShowMess
                     <span className="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-slate-100 text-[#17324D] border border-slate-200">
                       {prog.code}
                     </span>
-                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#2E7D5B]">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#2E7D5B]"></span>
-                      Active
+                    <span className={`inline-flex items-center gap-1 text-[11px] font-semibold ${
+                      prog.is_expired
+                        ? 'text-rose-600'
+                        : prog.is_active
+                        ? 'text-[#2E7D5B]'
+                        : 'text-slate-400'
+                    }`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${
+                        prog.is_expired
+                          ? 'bg-rose-600'
+                          : prog.is_active
+                          ? 'bg-[#2E7D5B]'
+                          : 'bg-slate-400'
+                      }`}></span>
+                      {prog.is_expired ? 'Expired' : prog.is_active ? 'Active' : 'Inactive'}
                     </span>
                   </div>
                   <h3 className="font-bold text-sm text-[#17324D] mt-2">{prog.title}</h3>
@@ -284,6 +331,12 @@ export const AdminScholarships: React.FC<AdminScholarshipsProps> = ({ onShowMess
               </tbody>
             </table>
           </div>
+          <AdminPagination
+            pagination={pagination}
+            onPageChange={setPage}
+            onLimitChange={(l) => { setLimit(l); setPage(1); }}
+            loading={loading}
+          />
         </div>
       )}
 
@@ -338,6 +391,81 @@ export const AdminScholarships: React.FC<AdminScholarshipsProps> = ({ onShowMess
                   onChange={(e) => setNewDesc(e.target.value)}
                   className="w-full p-2 bg-[#F5F7FA] border border-[#D9E0E6] rounded-lg text-xs text-[#17202A] focus:outline-none focus:bg-white"
                 />
+              </div>
+
+              {/* Dynamic Requirement Builder Section */}
+              <div className="pt-2 border-t border-[#D9E0E6]">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-xs font-bold text-[#17324D]">Program Requirements Builder</label>
+                  <button
+                    type="button"
+                    onClick={addReqItem}
+                    className="text-[11px] font-bold text-[#17324D] hover:underline flex items-center gap-1"
+                  >
+                    <Plus size={12} />
+                    <span>Add Requirement</span>
+                  </button>
+                </div>
+
+                <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                  {reqItems.map((req, idx) => (
+                    <div key={idx} className="p-2.5 bg-[#F5F7FA] border border-[#D9E0E6] rounded-lg text-xs space-y-2">
+                      <div className="flex items-center justify-between gap-2">
+                        <input
+                          type="text"
+                          required
+                          placeholder="Requirement Name (e.g. COG)"
+                          value={req.name}
+                          onChange={(e) => updateReqItem(idx, 'name', e.target.value)}
+                          className="flex-1 p-1 bg-white border border-[#D9E0E6] rounded text-xs font-semibold text-[#17202A]"
+                        />
+                        {reqItems.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => removeReqItem(idx)}
+                            className="text-rose-600 hover:text-rose-800 text-[11px] font-semibold"
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </div>
+
+                      <input
+                        type="text"
+                        placeholder="Description / Instructions"
+                        value={req.description}
+                        onChange={(e) => updateReqItem(idx, 'description', e.target.value)}
+                        className="w-full p-1 bg-white border border-[#D9E0E6] rounded text-xs text-[#5F6B76]"
+                      />
+
+                      <div className="flex items-center justify-between gap-2 text-[11px]">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[#5F6B76] font-medium">Format:</span>
+                          <select
+                            value={req.allowed_type}
+                            onChange={(e) => updateReqItem(idx, 'allowed_type', e.target.value)}
+                            className="p-1 bg-white border border-[#D9E0E6] rounded font-semibold text-[#17202A]"
+                          >
+                            <option value="PDF/JPG/PNG">PDF / JPG / PNG</option>
+                            <option value="PDF">PDF Only</option>
+                            <option value="JPG/PNG">Images (JPG/PNG)</option>
+                            <option value="PDF/DOCX">PDF / DOCX</option>
+                          </select>
+                        </div>
+
+                        <label className="flex items-center gap-1 cursor-pointer font-bold text-[#17324D]">
+                          <input
+                            type="checkbox"
+                            checked={req.required}
+                            onChange={(e) => updateReqItem(idx, 'required', e.target.checked)}
+                            className="rounded text-[#17324D]"
+                          />
+                          <span>Mandatory</span>
+                        </label>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">

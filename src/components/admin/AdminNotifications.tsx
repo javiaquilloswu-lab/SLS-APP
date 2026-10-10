@@ -8,7 +8,8 @@ import {
   CheckCircle2,
   Clock
 } from 'lucide-react';
-import { AdminApi, AdminNotification } from '../../services/adminApi';
+import { AdminApi, AdminNotification, PaginationMeta } from '../../services/adminApi';
+import { AdminPagination } from './AdminPagination';
 
 interface AdminNotificationsProps {
   onShowMessage: (msg: string, isError?: boolean) => void;
@@ -17,6 +18,11 @@ interface AdminNotificationsProps {
 export const AdminNotifications: React.FC<AdminNotificationsProps> = ({ onShowMessage }) => {
   const [notifications, setNotifications] = useState<AdminNotification[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Pagination State
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+  const [pagination, setPagination] = useState<PaginationMeta | undefined>(undefined);
 
   // Form State
   const [targetType, setTargetType] = useState<'all' | 'specific'>('all');
@@ -30,9 +36,15 @@ export const AdminNotifications: React.FC<AdminNotificationsProps> = ({ onShowMe
   const fetchNotifications = async () => {
     setLoading(true);
     try {
-      const res = await AdminApi.getNotifications();
+      const res = await AdminApi.getNotifications(page, limit);
       if (res.success && res.data) {
-        setNotifications(res.data);
+        if (Array.isArray(res.data)) {
+          setNotifications(res.data);
+          setPagination(undefined);
+        } else {
+          setNotifications(res.data.notifications || []);
+          setPagination(res.data.pagination);
+        }
       } else {
         onShowMessage(res.message || 'Unable to query notifications.', true);
       }
@@ -45,7 +57,7 @@ export const AdminNotifications: React.FC<AdminNotificationsProps> = ({ onShowMe
 
   useEffect(() => {
     fetchNotifications();
-  }, []);
+  }, [page, limit]);
 
   const handleDispatch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -286,6 +298,12 @@ export const AdminNotifications: React.FC<AdminNotificationsProps> = ({ onShowMe
               </tbody>
             </table>
           </div>
+          <AdminPagination
+            pagination={pagination}
+            onPageChange={setPage}
+            onLimitChange={(l) => { setLimit(l); setPage(1); }}
+            loading={loading}
+          />
         </div>
       </div>
     </div>

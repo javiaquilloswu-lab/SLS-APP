@@ -3,6 +3,7 @@ package com.swu.phinma.studentlife.adapters;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
@@ -17,6 +18,7 @@ public class RequestHistoryAdapter extends RecyclerView.Adapter<RequestHistoryAd
 
     public interface OnItemClickListener {
         void onItemClick(RequestHistoryItem item);
+        void onCancelClick(RequestHistoryItem item);
     }
 
     public RequestHistoryAdapter(List<RequestHistoryItem> items, OnItemClickListener listener) {
@@ -40,6 +42,18 @@ public class RequestHistoryAdapter extends RecyclerView.Adapter<RequestHistoryAd
         holder.tvDate.setText("Submitted " + item.getSubmissionDate());
         holder.tvStatus.setText("● " + item.getStatus());
 
+        // Bind Requirements Submission Progress (Separated from Request Status)
+        int sub = item.getSubmittedReqs();
+        int tot = item.getTotalReqs();
+        int pct = item.getProgressPercent();
+
+        if (holder.tvProgressText != null) {
+            holder.tvProgressText.setText("Requirements Progress: " + sub + "/" + tot + " Uploaded (" + pct + "%)");
+        }
+        if (holder.progressSubmissions != null) {
+            holder.progressSubmissions.setProgress(pct);
+        }
+
         if ("Completed".equalsIgnoreCase(item.getStatus()) || "Approved".equalsIgnoreCase(item.getStatus())) {
             holder.tvStatus.setBackgroundResource(R.drawable.bg_pill_active);
             holder.tvStatus.setTextColor(ContextCompat.getColor(holder.itemView.getContext(), R.color.status_green_text));
@@ -54,9 +68,28 @@ public class RequestHistoryAdapter extends RecyclerView.Adapter<RequestHistoryAd
             holder.tvStatus.setTextColor(ContextCompat.getColor(holder.itemView.getContext(), R.color.status_blue_text));
         }
 
+        // Tapping card or View Details opens Request Details Screen (RequestTrackingActivity)
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) listener.onItemClick(item);
         });
+
+        if (holder.btnDetails != null) {
+            holder.btnDetails.setOnClickListener(v -> {
+                if (listener != null) listener.onItemClick(item);
+            });
+        }
+
+        // Long-pressing card or tapping status pill prompts Cancellation if eligible
+        holder.itemView.setOnLongClickListener(v -> {
+            if (listener != null) listener.onCancelClick(item);
+            return true;
+        });
+
+        if (holder.tvStatus != null) {
+            holder.tvStatus.setOnClickListener(v -> {
+                if (listener != null) listener.onCancelClick(item);
+            });
+        }
     }
 
     @Override
@@ -65,7 +98,8 @@ public class RequestHistoryAdapter extends RecyclerView.Adapter<RequestHistoryAd
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView tvTitle, tvDept, tvRef, tvDate, tvStatus, btnDetails;
+        TextView tvTitle, tvDept, tvRef, tvDate, tvStatus, tvProgressText, btnDetails;
+        ProgressBar progressSubmissions;
 
         ViewHolder(View itemView) {
             super(itemView);
@@ -74,6 +108,8 @@ public class RequestHistoryAdapter extends RecyclerView.Adapter<RequestHistoryAd
             tvRef = itemView.findViewById(R.id.tvHistoryRef);
             tvDate = itemView.findViewById(R.id.tvHistoryDate);
             tvStatus = itemView.findViewById(R.id.tvHistoryStatusPill);
+            tvProgressText = itemView.findViewById(R.id.tvReqsProgressText);
+            progressSubmissions = itemView.findViewById(R.id.progressReqSubmissions);
             btnDetails = itemView.findViewById(R.id.btnViewDetails);
         }
     }
